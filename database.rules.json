@@ -1,0 +1,71 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "community": {
+      "photos": {
+        ".read": "query.orderByKey && query.limitToLast != null && query.limitToLast <= 12",
+        "$id": {
+          ".write": "auth != null && auth.uid === 'REPLACE_WITH_ADMIN_UID'",
+          ".validate": "newData.hasChildren(['title','bytes','width','height','createdAt'])",
+          "title": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 100"
+          },
+          "bytes": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 102400"
+          },
+          "width": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 1280"
+          },
+          "height": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 1280"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && newData.val() === now"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "questions": {
+        ".read": "query.orderByKey && query.limitToLast != null && query.limitToLast <= 20",
+        "$id": {
+          ".write": "(auth != null && auth.uid === 'REPLACE_WITH_ADMIN_UID') || (auth != null && !data.exists() && newData.exists() && newData.child('uid').val() === auth.uid && !newData.child('answer').exists() && (!root.child('community/rate').child(auth.uid).exists() || root.child('community/rate').child(auth.uid).val() <= now - 60000) && newData.parent().parent().child('rate').child(auth.uid).val() === now)",
+          ".validate": "newData.hasChildren(['name','question','uid','createdAt'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+          },
+          "question": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 2000"
+          },
+          "uid": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 128"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || (data.exists() && newData.val() === data.val()))"
+          },
+          "answer": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 3000"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "photoData": {
+        "$id": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === 'REPLACE_WITH_ADMIN_UID'",
+          ".validate": "newData.isString() && newData.val().length <= 136600 && newData.val().matches(/^data:image\\/(webp|jpeg);base64,[A-Za-z0-9+\\/=]+$/)"
+        }
+      },
+      "rate": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && newData.val() === now && (!data.exists() || data.val() <= now - 60000)",
+          ".validate": "newData.isNumber()"
+        }
+      }
+    }
+  }
+}
